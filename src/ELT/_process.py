@@ -1,15 +1,18 @@
 """
-Processes the raw data into important information so that it's more manageable for later analysis
+Processes the raw data into important information so that it's more manageable for later analysis;
+these functions have the common trope of taking in a df and outputting a cleaned version
 ** requires data to be in '/data/...' from the main directory
 
 methods:
 process_raw: brings down the raw size from ~175MB to ~3MB; total down to ~16MB
 combine: combines desired processed parts into a single df; remembers which part each datapoint is from
+process_analysis: runs absolute and proportional ranking in tandum; produces focused df
 """
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from src.ELT._utils import estab_breakdown
+from src.ELT._analysis import absolute_ranking, prop_ranking
 
 def process_raw(part):
     """
@@ -25,12 +28,15 @@ def process_raw(part):
     # preamble
     df = df.iloc[1:, :]  # removes description
     df['ESTAB'] = df['ESTAB'].astype(int)  # for later establishment calculations
+
+    # Debug/remove error
     if part in ['Part 4a', 'Part 4b']:
         srch = ['1', '2', '114', '123', '125', '131', '132', '998']  # debug
         temp = df.loc[df['RCPSZFE.id'] == '1']
     else:
         srch = ['001', '002', '114', '123', '125', '131', '132', '998']
         temp = df.loc[df['RCPSZFE.id'] == '001']
+    df = df.loc[df['GEO.id2'].str.len() == 5]
 
     # frequency of zip codes
     zip_occur = temp.groupby(by='GEO.id2').size().reset_index().rename(columns={0: 'zip_count'}).sort_values(
@@ -53,7 +59,7 @@ def process_raw(part):
 
     # recombine into final df
     df = df['GEO.id2'].drop_duplicates().reset_index().drop(columns=['index'])
-    df = df.merge(zip_occur, on='GEO.id2', how='left')
+    df = df.merge(zip_occur, on='GEO.id2', how='left')  # TODO: simplify this implementation in for loop (for whole method)
     del zip_occur  # optimizations ...
     df = df.merge(estab_all, on='GEO.id2', how='left')
     del estab_all
@@ -87,5 +93,18 @@ def combine(parts):
     temp.to_pickle('data/combined_' + str(len(parts)) + '_parts.p')
     return temp
 
+def process_analysis(df, top1, top2, market):
+    """
+    perform analysis processing
+    :param DataFrame df: processed data
+    :param int top1: absolute top values (used for ensuring enough data in sample; e.g. 'stores' top1 = 2000)
+    :param int top2: proportional top values (as in top 10 per category)
+    :param str market: the market to analyze (e.g. 'stores') note that the implementation here is not dynamic
+    :return DataFrame:
+    """
+    df = absolute_ranking(df, market, top1)
+    df = prop_ranking(df, market, top2)
+    df.to_pickle("data/analysis_" + market + ".p")
 
+    return df
 
