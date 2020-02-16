@@ -1,0 +1,79 @@
+for part 1 and part 2----
+
+'NAICS.display-label' : 105 unique values [str]
+	ex -- 'Supermarkets and other grocery (except convenience) stores'
+'NAICS.id' : 167 unique values [str / int]
+	ex -- '445299'
+'GEO.id2' : indeterminate size [str / int]
+	ex -- '35762'
+'GEO.id' : same # of unique as GEO.id2 but also indeterminate -- 'US' is in all the GEO.id tags [str]
+	ex -- '8610000US72020'
+'RCPSZFE.id' : 8 unique values [str / int]
+	ex -- '123'
+'RCPSZFE.display-label' : 8 unique and consistent labels [str]
+	ex -- 'Meaning of Sales, receipts, or revenue size of establishments operated the entire year code'
+'YEAR.id' : 1 unique year (2012) [str / int]
+	ex -- '2012' (only single value)
+'ESTAB' : indeterminate size without consistency between columns [str / int]
+	ex -- '279'
+
+for parts 3, 4a, 4b, 5 -- are they consistent?
+
+'NAICS.display-label' : consistent 
+'NAICS.id' : consistent
+'GEO.id2' : consistent
+'GEO.id' : consistent
+'RCPSZFE.id' : consistent
+'RCPSZFE.display-label' : consistent
+'YEAR.id' : consistent
+'ESTAB' : consistent
+
+* I also verified that the GEO.id2 has the same values between datasets
+
+Therefore, the seperated CSVs are from 2012, have any number of different geo location information,
+	they are made up of something RCPSZFE with only 8 classifying states, consistent NAICS labeling
+	schema, and any amount of establishments reported.
+	
+The data is a breakdown of categories with the following market meaning:
+
+'NAICS.display-label' :: The North American Industry Classification System (NAICS) is the standard used by Federal statistical agencies in classifying business establishments
+'NAICS.id' :: appropriate id for NAICS label
+'GEO.id2' :: ZIP code
+'GEO.id' :: seemingly unique code for a given zip-code (?)
+'RCPSZFE.display-label' :: the definition for hte following ESTAB value. In other words it describes how many establishments in total, how many that operated for an entire year, which ones made revenue between certain figures... so this is tax data
+|
+V
+RCPSZFE correpsond to the following set values
+0    									   'RCPSZFE.id'														 'RCPSZFE.display-label'
+1                                                    1                                 All establishments
+2                                                    2        Establishments operated for the entire year
+3                                                  123  Establishments operated entire year with sales revenue... 100,000 to 249,999
+18                                                 125  Establishments operated entire year with sales revenue... 250,000 to 499,999
+19                                                 132  Establishments operated entire year with sales revenue... 1,000,000 or more
+103                                                114  Establishments operated entire year with sales revenue... less than 100,000
+106                                                131  Establishments operated entire year with sales revenue... 500,000 to 999,999
+108                                                998    Establishments not operated for the entire year
+
+ESTAB is the answer to those questions/number of establishments meeting certain criteria
+
+---------------------
+processed 175MB -> 4.6MB (worth noting that there are not repeats in different parts for the zip codes)
+
+Breaking the markets into segments:
+word frequency
+
+outputs the following of interest:
+'stores' -- 67
+'dealers' -- 18
+'goods' -- 7
+'supplies' -- 7
+'retailers' -- 7
+
+-> these as categories 89 uniquely classified
+'goods' all contain 'stores' as well
+'supplies' almost all contain 'stores'
+'retailers' not a good indicator of class
+
+new categories:
+'stores'
+'dealers'
